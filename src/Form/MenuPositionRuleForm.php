@@ -126,7 +126,15 @@ class MenuPositionRuleForm extends EntityForm {
       if ($rule->getConditions()->has($condition_id)) {
         $condition = $rule->getConditions()->get($condition_id);
       } else {
-        $condition = $this->condition_plugin_manager->createInstance($definition['id']);
+        try {
+          $condition = $this->condition_plugin_manager->createInstance($definition['id']);
+        } catch (\Drupal\Component\Plugin\Exception\PluginNotFoundException $e) {
+          \Drupal::logger('menu_position')->error('Failed to instantiate Condition @condition: @message', [
+            '@condition' => $condition_id,
+            '@message' => $e->getMessage(),
+          ]);
+          continue;
+        }
       }
 
       // Set conditions in the form state for extraction later.
